@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Product } from "../types/product";
 
 const {
   createProduct,
@@ -8,6 +9,13 @@ const {
 } = require("../services/productService");
 
 export const createProductController = async (req: Request, res: Response) => {
+  const { name, description, price, category, stock } = req.body;
+
+  // Simple validation check
+  if (!name || !description || !price || !category || !stock) {
+    return res.status(400).json({ error: "All fields are required." });
+  }
+
   try {
     const product = await createProduct(req.body);
     res.status(201).json(product);
@@ -18,8 +26,10 @@ export const createProductController = async (req: Request, res: Response) => {
 
 export const getAllProductsController = async (req: Request, res: Response) => {
   try {
-    const products = await getAllProducts();
-    res.status(200).json(products);
+    getAllProducts((err: any, products: Product[]) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(200).json(products);
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

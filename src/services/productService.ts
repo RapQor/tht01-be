@@ -3,26 +3,28 @@ import { Product } from "../types/product";
 
 class ProductService {
   // CREATE
-  static createProduct(
-    product: Product,
-    callback: (err: any, data: any) => void
-  ) {
-    const sql = `INSERT INTO products (name, description, price, category, stock) VALUES (?, ?, ?, ?, ?)`;
-    const { name, description, price, category, stock } = product;
+  static createProduct(product: Product): Promise<{ id: number }> {
+    return new Promise((resolve, reject) => {
+      const sql = `INSERT INTO products (name, description, price, category, stock) VALUES (?, ?, ?, ?, ?)`;
+      const { name, description, price, category, stock } = product;
 
-    db.run(
-      sql,
-      [name, description, price, category, stock],
-      function (this: any, err: any) {
-        callback(err, { id: this.lastID });
-      }
-    );
+      db.run(
+        sql,
+        [name, description, price, category, stock],
+        function (this: any, err: any) {
+          if (err) return reject(err);
+          resolve({ id: this.lastID, ...product });
+        }
+      );
+    });
   }
 
   // READ
   static getAllProducts(callback: (err: any, rows: Product[]) => void) {
     const sql = `SELECT * FROM products`;
-    db.all(sql, [], callback);
+    db.all(sql, [], (err: any, rows: Product[]) => {
+      callback(err, rows);
+    });
   }
 
   // UPDATE
