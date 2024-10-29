@@ -1,4 +1,5 @@
 import { Router } from "express";
+import cartRoute from "./cartRoute";
 const {
   createProductController,
   getAllProductsController,
@@ -9,10 +10,10 @@ const {
 
 const productRoute = Router();
 
-productRoute.post("/products", createProductController);
-productRoute.get("/products", getAllProductsController);
-productRoute.get("/products/:id", getProductByIdController);
-productRoute.put("/products/:id", updateProductController);
-productRoute.delete("/products/:id", deleteProductController);
+productRoute.post("/", createProductController);
+productRoute.get("/", getAllProductsController);
+productRoute.get("/:id", getProductByIdController);
+productRoute.put("/:id", updateProductController);
+productRoute.delete("/:id", deleteProductController);
 
 export default productRoute;

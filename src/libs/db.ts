@@ -26,6 +26,22 @@ let db = new sqlite3.Database(dbName, (err: any) => {
         }
       }
     );
+
+    db.run(
+      `CREATE TABLE IF NOT EXISTS carts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER NOT NULL,
+        quantity INTEGER NOT NULL,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE ON UPDATE CASCADE
+      )`,
+      (err: any) => {
+        if (err) {
+          console.error(err.message);
+        } else {
+          console.log("Carts table created or already exists.");
+        }
+      }
+    );
   }
 });
 
