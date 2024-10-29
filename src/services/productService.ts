@@ -27,6 +27,17 @@ class ProductService {
     });
   }
 
+  // READ
+  static getProductById(
+    id: number,
+    callback: (err: any, row: Product) => void
+  ) {
+    const sql = `SELECT * FROM products WHERE id = ?`;
+    db.get(sql, [id], (err: any, row: Product) => {
+      callback(err, row);
+    });
+  }
+
   // UPDATE
   static updateProduct(
     id: number,
@@ -46,6 +57,17 @@ class ProductService {
     db.run(sql, [name, description, price, category, stock, id], callback);
   }
 
+  // Filter by category
+  static getProductsByCategory(
+    category: string,
+    callback: (err: any, rows: Product[]) => void
+  ) {
+    const sql = `SELECT * FROM products WHERE category = ?`;
+    db.all(sql, [category], (err: any, rows: Product[]) => {
+      callback(err, rows);
+    });
+  }
+
   // DELETE
   static deleteProduct(id: number, callback: (err: any) => void) {
     const sql = `DELETE FROM products WHERE id = ?`;
@@ -53,4 +75,4 @@ class ProductService {
   }
 }
 
-module.exports = ProductService;
+export default ProductService;

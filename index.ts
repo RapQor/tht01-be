@@ -1,6 +1,5 @@
 import express from "express";
 import dotenv from "dotenv";
-import db from "./src/libs/db";
 import bodyParser from "body-parser";
 import route from "./src/routes/index";
 

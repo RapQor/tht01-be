@@ -1,23 +1,46 @@
 import { Request, Response } from "express";
 import { Product } from "../types/product";
-
-const {
-  createProduct,
-  getAllProducts,
-  updateProduct,
-  deleteProduct,
-} = require("../services/productService");
+import ProductService from "../services/productService";
 
 export const createProductController = async (req: Request, res: Response) => {
   const { name, description, price, category, stock } = req.body;
 
-  // Simple validation check
+  // Convert price and stock to numbers since form-data sends everything as strings
+  const productData = {
+    name,
+    description,
+    price: Number(price),
+    category,
+    stock: Number(stock),
+  };
+
+  // Validation check
   if (!name || !description || !price || !category || !stock) {
-    return res.status(400).json({ error: "All fields are required." });
+    return res.status(400).json({
+      error: "All fields are required.",
+      received: {
+        name: name || "missing",
+        description: description || "missing",
+        price: price || "missing",
+        category: category || "missing",
+        stock: stock || "missing",
+      },
+    });
+  }
+
+  // Validate that price and stock are valid numbers
+  if (isNaN(productData.price) || isNaN(productData.stock)) {
+    return res.status(400).json({
+      error: "Price and stock must be valid numbers",
+      received: {
+        price,
+        stock,
+      },
+    });
   }
 
   try {
-    const product = await createProduct(req.body);
+    const product = await ProductService.createProduct(productData);
     res.status(201).json(product);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -26,19 +49,65 @@ export const createProductController = async (req: Request, res: Response) => {
 
 export const getAllProductsController = async (req: Request, res: Response) => {
   try {
-    getAllProducts((err: any, products: Product[]) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(200).json(products);
-    });
+    const category = req.query.category as string;
+
+    if (category) {
+      // Jika ada category query parameter
+      ProductService.getProductsByCategory(
+        category,
+        (err: any, products: Product[]) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.status(200).json(products);
+        }
+      );
+    } else {
+      // Jika tidak ada query parameter, tampilkan semua produk
+      ProductService.getAllProducts((err: any, products: Product[]) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(200).json(products);
+      });
+    }
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const updateProductController = async (req: Request, res: Response) => {
+export const getProductByIdController = async (req: Request, res: Response) => {
   try {
-    const product = await updateProduct(Number(req.params.id), req.body);
-    res.status(200).json(product);
+    ProductService.getProductById(
+      Number(req.params.id),
+      (err: any, product: Product) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!product)
+          return res.status(404).json({ error: "Product not found" });
+        res.status(200).json(product);
+      }
+    );
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const updateProductController = async (req: Request, res: Response) => {
+  const { name, description, price, category, stock } = req.body;
+
+  const productData = {
+    name,
+    description,
+    price: Number(price),
+    category,
+    stock: Number(stock),
+  };
+
+  try {
+    ProductService.updateProduct(
+      Number(req.params.id),
+      productData,
+      (err: any) => {
+        if (err) return res.status(400).json({ error: err.message });
+        res.status(200).json({ message: "Product updated successfully" });
+      }
+    );
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
@@ -46,16 +115,11 @@ export const updateProductController = async (req: Request, res: Response) => {
 
 export const deleteProductController = async (req: Request, res: Response) => {
   try {
-    await deleteProduct(Number(req.params.id));
-    res.status(200).json({ message: "Product deleted successfully" });
+    ProductService.deleteProduct(Number(req.params.id), (err: any) => {
+      if (err) return res.status(400).json({ error: err.message });
+      res.status(200).json({ message: "Product deleted successfully" });
+    });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
-};
-
-module.exports = {
-  createProductController,
-  getAllProductsController,
-  updateProductController,
-  deleteProductController,
 };
