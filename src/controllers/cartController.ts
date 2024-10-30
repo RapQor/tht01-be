@@ -118,11 +118,10 @@ export const updateCartController = async (req: Request, res: Response) => {
   const { productId, quantity } = req.body;
   const cartId = Number(req.params.id);
 
-  if (!productId || !quantity) {
+  if (!quantity) {
     return res.status(400).json({
       error: "Product ID and quantity are required",
       received: {
-        productId: productId || "missing",
         quantity: quantity || "missing",
       },
     });
