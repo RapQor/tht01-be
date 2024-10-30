@@ -72,13 +72,13 @@ class CartService {
   // Update
   static updateCart(
     id: number,
-    updatedCart: Cart,
+    updatedCart: Partial<Cart>,
     callback: (err: any) => void
   ) {
-    const sql = `UPDATE carts SET product_id = ?, quantity = ? WHERE id = ?`;
-    const { productId, quantity } = updatedCart;
+    const sql = `UPDATE carts SET quantity = ? WHERE id = ?`;
+    const { quantity } = updatedCart;
 
-    db.run(sql, [productId, quantity, id], callback);
+    db.run(sql, [quantity, id], callback);
   }
 
   // Delete
