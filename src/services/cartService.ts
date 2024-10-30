@@ -75,7 +75,7 @@ class CartService {
     updatedCart: Cart,
     callback: (err: any) => void
   ) {
-    const sql = `UPDATE carts SET productId = ?, quantity = ? WHERE id = ?`;
+    const sql = `UPDATE carts SET product_id = ?, quantity = ? WHERE id = ?`;
     const { productId, quantity } = updatedCart;
 
     db.run(sql, [productId, quantity, id], callback);

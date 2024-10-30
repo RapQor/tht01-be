@@ -116,19 +116,93 @@ export const getCartByIdController = async (req: Request, res: Response) => {
 
 export const updateCartController = async (req: Request, res: Response) => {
   const { productId, quantity } = req.body;
+  const cartId = Number(req.params.id);
 
-  const cartData = {
-    productId: Number(productId),
-    quantity: Number(quantity),
-  };
+  if (!productId || !quantity) {
+    return res.status(400).json({
+      error: "Product ID and quantity are required",
+      received: {
+        productId: productId || "missing",
+        quantity: quantity || "missing",
+      },
+    });
+  }
+
+  const newQuantity = Number(quantity);
+
+  if (isNaN(newQuantity)) {
+    return res.status(400).json({
+      error: "Quantity must be a valid number",
+      received: { quantity },
+    });
+  }
 
   try {
-    CartService.updateCart(Number(req.params.id), cartData, (err: any) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(200).json({ message: "Cart updated successfully" });
+    // 1. Get current cart data to know the old quantity
+    const currentCart = await new Promise<Cart>((resolve, reject) => {
+      CartService.getCartById(cartId, (err: any, cart: Cart) => {
+        if (err) reject(err);
+        if (!cart) reject(new Error("Cart not found"));
+        resolve(cart);
+      });
+    });
+
+    // 2. Get product data to check stock
+    const product = await new Promise<any>((resolve, reject) => {
+      ProductService.getProductById(productId, (err: any, product: any) => {
+        if (err) reject(err);
+        if (!product) reject(new Error("Product not found"));
+        resolve(product);
+      });
+    });
+
+    // 3. Calculate stock changes
+    const quantityDifference = newQuantity - currentCart.quantity;
+    const newStock = product.stock - quantityDifference;
+
+    // 4. Validate if we have enough stock
+    if (newStock < 0) {
+      return res.status(400).json({
+        error: `Insufficient stock. Available: ${
+          product.stock + currentCart.quantity
+        }`,
+      });
+    }
+
+    // 5. Update cart
+    await new Promise<void>((resolve, reject) => {
+      CartService.updateCart(
+        cartId,
+        { productId, quantity: newQuantity },
+        (err: any) => {
+          if (err) reject(err);
+          resolve();
+        }
+      );
+    });
+
+    // 6. Update product stock
+    await new Promise<void>((resolve, reject) => {
+      ProductService.updateProduct(
+        productId,
+        { ...product, stock: newStock },
+        (err: any) => {
+          if (err) reject(err);
+          resolve();
+        }
+      );
+    });
+
+    res.status(200).json({
+      message: "Cart updated successfully",
+      updatedStock: newStock,
+      oldQuantity: currentCart.quantity,
+      newQuantity: newQuantity,
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(error.message.includes("not found") ? 404 : 500).json({
+      error: error.message,
+    });
   }
 };
 
