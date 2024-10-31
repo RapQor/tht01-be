@@ -17,6 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: "https://tht01-fe.vercel.app",
+    methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
 
