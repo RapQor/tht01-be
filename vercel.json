@@ -2,14 +2,21 @@
   "version": 2,
   "builds": [
     {
-      "src": "./index.ts",
+      "src": "index.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/"
+      "dest": "index.ts",
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      "headers": {
+        "Access-Control-Allow-Origin": "https://tht01-fe.vercel.app",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+        "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+      }
     }
   ],
   "functions": {
