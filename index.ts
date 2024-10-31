@@ -16,19 +16,20 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const allowedOrigins = [
   "https://tht01-fe.vercel.app",
-  // Add other allowed origins here
+  "https://tht01-be.vercel.app",
 ];
 
 app.use(
   cors({
     origin: function (origin: any, callback: any) {
       // Allow requests with no origin like mobile apps or curl
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, origin);
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
     },
+    credentials: true, // Allow credentials
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
