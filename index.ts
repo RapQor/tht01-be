@@ -14,10 +14,23 @@ const port = process.env.PORT || 5000;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+const allowedOrigins = [
+  "https://tht01-fe.vercel.app",
+  // Add other allowed origins here
+];
+
 app.use(
   cors({
-    origin: "https://tht01-fe.vercel.app",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: function (origin: any, callback: any) {
+      // Allow requests with no origin like mobile apps or curl
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, origin);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
